@@ -66,22 +66,24 @@ int get_color_threshold()
  *
  *   threshold: when a pixel colour is considered black (less than threshold) 
  *              or white (more than threshold)
+ *   pixels[]:  array to hold white and black pixels
  *
  *   returns: int number of white pixels
  *
  */
-int get_white_pixels(int threshold)
+void get_white_pixels(int threshold, int pixels[])
 {
   int whitePixels;
   for(int i = 0; i < 320; i++)
   { 
+  	pixels[i] = 0; // pixel is black
+
     int pixel = get_pixel(120, i, 3);
     if(pixel > threshold)
     {
-      whitePixels++;
+      pixels[i] = 1; // pixel is white
     }
   }
-  return whitePixels;
 }
 
 /*
@@ -95,10 +97,12 @@ int get_white_pixels(int threshold)
 int get_error()
 {
   int error = 0;
+  int pixels[320];
+  get_white_pixels(get_color_threshold(),pixels);
+
   for(int i = 0; i < 320; i++)
   { 
-    int pixel = get_pixel(120, i, 3);
-    error += (i-160)*pixel;
+    error += (i-160)*pixels[i];
   }
-  return (error/get_white_pixels(get_color_threshold()));
+  return error;
 }
