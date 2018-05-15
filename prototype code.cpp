@@ -31,6 +31,32 @@ int move_forward(speed){
 	set_motor(1, 0);
 	set_motor(2, 0);
 }
+//Opens a connection to the gate, if a connection is established, 0 is returned.
+int establishConnectionToGate(){
+	int reply = connect_to_server("130.195.6.196", 1024);
+	return reply;
+}
+
+int sendMessageToGate(char message){
+	int reply = send_to_server(message);
+	return reply;
+}
+
+int recieveMessageFromGate(){}
+
+int openGate(){
+	chat message = "Please";
+	if(establishConnectionToGate == 0){
+		if(sendMessageToGate(message) == 0){
+			boolean done = false;
+			while(message != "Please" && done == false){
+				receive_from_server(message);
+				done = true;
+			}
+			sendMessageToGate(message);
+		}
+	}
+}
 
 /*
  * Function: get_color_threshold
