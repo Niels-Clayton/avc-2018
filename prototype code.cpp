@@ -55,8 +55,8 @@ int get_color_threshold()
       min = pixel;
     }
   }
-  /* Return threshold */
-  return (max+min)/2;
+  /* Return threshold - returns 0 if image is likely to be all one colour */
+  return ((max-min) > 100) ? (max+min)/2 : 0;
 }
 
 /*
