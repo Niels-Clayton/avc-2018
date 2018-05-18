@@ -125,7 +125,7 @@ int calculate_error()
 		}
 	}
 
-	return (wp >= 1) ? error/wp : 10000;
+
 }
 
 /*
