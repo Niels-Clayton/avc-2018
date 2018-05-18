@@ -2,17 +2,27 @@
 #include <time.h>
 #include "E101.h"
 
-/** Opens the gate **/
-void doGate(){
-   //connects to server with the ip address 
-   connect_to_server("130.195.6.196", 1024);
-   //sends a message to the connected server
-   send_to_server("Please");
-   //receives message from the connected server
-   char message[24];
-   receive_from_server(message); //this may be buggy!
-   send_to_server(message);
-	}
+int main(){
+	init();
+	set_motor (1, 255);
+	set_motor (2, 255);
+	sleep1(4, 000000);
+	set_motor (1, 127);
+	sleep1(2, 000000);
+	set_motor (1, 0);
+	set_motor (2, 0);
+	sleep1(1, 000000);
+	set_motor (1, -127);
+	set_motor (2, -127);
+	sleep1(4, 000000);
+	set_motor (2, -40);
+	sleep(2, 000000);
+	set_motor(1, 0);
+	set_motor(2, 0);
+	sleep1(5, 000000);
+	int speed = 40;
+	move_forward(speed);
+return 0;}
 
 int move_forward(speed){
 	set_motor (1, speed);
@@ -115,7 +125,7 @@ int calculate_error()
 		}
 	}
 
-
+	return (wp >= 1) ? error/wp : 10000;
 }
 
 /*
@@ -155,28 +165,3 @@ int calculate_pid()
 	return finalSignal;
 
 }
-
-int main(){
-	init();
-	doGate();
-	set_motor (1, 255);
-	set_motor (2, 255);
-	sleep1(4, 000000);
-	set_motor (1, 127);
-	sleep1(2, 000000);
-	set_motor (1, 0);
-	set_motor (2, 0);
-	sleep1(1, 000000);
-	set_motor (1, -127);
-	set_motor (2, -127);
-	sleep1(4, 000000);
-	set_motor (2, -40);
-	sleep(2, 000000);
-	
-	//Reset motors to 0
-	set_motor(1, 0);
-	set_motor(2, 0);
-	sleep1(5, 000000);
-	int speed = 40;
-	move_forward(speed);
-return 0;}

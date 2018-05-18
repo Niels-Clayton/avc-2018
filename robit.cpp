@@ -118,7 +118,17 @@ int calculate_error()
 		}
 	}
 
-	return (wp >= 1) ? error/wp : 10000;
+	if(wp == 320){
+		return 20000; // case for if sensor only senses white
+	}else if(wp == 0){
+		return 10000; // case for if sensor only senses black
+	}else if((wp > 100 && wp < 140) && pixels[0] == 1 && pixels[10] == 1 && pixels[20] == 1){
+		return -30000; // case for if half the screen has white 
+	}else if ((wp > 100 && wp < 140) && pixels[320] == 1 && pixels[310] == 1 && pixels[300] == 1){
+		return 30000;
+	}else{
+		return error/wp;
+	}
 }
 
 /*
@@ -222,6 +232,24 @@ int main(){
 				set_motor(1, -80);
 				set_motor(2, -80);
 				}
+			}else if(currentError == -30000){
+				set_motor(1, 80);
+				set_motor(2, 80);
+				sleep1(0, 500000);
+				set_motor(1, 80);
+				set_motor(2, 0);
+				sleep1(0,500000 );
+			}else if(currentError == 30000){
+				set_motor(1, 80);
+				set_motor(2, 80);
+				sleep1(0, 500000);
+				set_motor(1, 0);
+				set_motor(2, 80);
+				sleep1(0,500000 );
+			}else if(currentError == 20000){
+				set_motor(1, 0);
+				set_motor(2, 0);
+				sleep1(5,0);
 			}
 			
 			double kp = 0.90;
