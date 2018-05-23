@@ -17,7 +17,7 @@ void do_Gate()
     connect_to_server("130.195.6.196", 1024);
     char message[24] = {"Please"};
     send_to_server(message);
-    receive_from_server(message); 
+    receive_from_server(message);
     send_to_server(message);
 }
 
@@ -34,9 +34,9 @@ int get_color_threshold()
 {
 	int max = 0;
 	int min = 255;
-	
+
 	for(int i = 0; i < 320; i++)
-	{ 
+	{
 		int pixel = get_pixel(120, i, 3);
 		if(pixel > max)
 		{
@@ -52,7 +52,7 @@ int get_color_threshold()
 	if(((max-min) < 100) && max > 120)
 	{
 		/* image is likely to be all white so set thr to 0 */
-		threshold = 0; 
+		threshold = 0;
 	}else if(((max-min) < 100) && max < 120)
 	{
 		/* image is likely to be all black so set thr to 255 */
@@ -68,7 +68,7 @@ int get_color_threshold()
  * ----------------------------
  *   Returns the number of white pixels in the middle row (120)
  *
- *   threshold: when a pixel colour is considered black (less than threshold) 
+ *   threshold: when a pixel colour is considered black (less than threshold)
  *              or white (more than threshold)
  *   pixels[]:  array to hold white and black pixels
  *
@@ -78,7 +78,7 @@ int get_color_threshold()
 void get_white_pixels(int threshold, int pixels[])
 {
 	for(int i = 0; i < 320; i++)
-	{ 
+	{
 		pixels[i] = 0; // pixel is black
 
 		int pixel = get_pixel(120, i, 3);
@@ -127,7 +127,7 @@ int calculate_error()
 	get_white_pixels(get_color_threshold(),pixels); //initialise array
 
 	for(int i = 0; i < 320; i++)
-	{ 
+	{
 		error += (i-160)*pixels[i];
 		if(pixels[i] == 1)
 		{
@@ -135,12 +135,12 @@ int calculate_error()
 		}
 	}
 
-	if(wp == 320){
+	if(wp >= 310){
 		return 20000; // case for if sensor only senses white
-	}else if(wp == 0){
+	}else if(wp <= 10){
 		return 10000; // case for if sensor only senses black
 	}else if((wp > 100 && wp < 180) && error < 0){
-		return -30000; // case for if half the screen has white 
+		return -30000; // case for if half the screen has white
 	}else if ((wp > 100 && wp < 180) && error > 0){
 		return 30000;
 	}else{
@@ -158,7 +158,7 @@ int calculate_error()
  */
 int calculate_pid(int currentError, int previousError, long elapsed)
 {
-	
+
 	/* Set kp and kd */
 	double kp = 0.95;
 	double kd = -0.40;
@@ -167,7 +167,7 @@ int calculate_pid(int currentError, int previousError, long elapsed)
 
 	/* Calculate Signals */
 	proportionalSignal = (double)currentError * kp;
-	
+
 	derivativeSignal = (((double)currentError - (double)previousError) * kd)/elapsed;
 
 	return proportionalSignal + derivativeSignal; // return final signal
@@ -184,7 +184,7 @@ void quadrant2()
 {
 	while(true)
 	{
-	
+
 		/* Calculate Time */
 		struct timeval t1;
 		struct timeval t2;
@@ -195,7 +195,7 @@ void quadrant2()
 		open_screen_stream();
 		take_picture();
 		update_screen();
-		
+
 		//if no red pixels have been detect, do normal motor controls
 		if(red_pixels() <50)
 		{
@@ -203,7 +203,7 @@ void quadrant2()
 			int currentError = calculate_error();
 			int previousError = 1;
 
-			if(currentError == 10000) 
+			if(currentError == 10000)
 			{
 				// If image is all black go backwards
 				set_motor_speed(-120,-120);
@@ -230,17 +230,17 @@ void quadrant2()
 			//	set_motor_speed(100, 0);
 			//	sleep1(0,500000 );
 			//}
-			
+
 
 			int finalSignal = calculate_pid(currentError, previousError, elapsed);
-			previousError = currentError;		
+			previousError = currentError;
 			t2 = t1;
 			elapsed = (t2.tv_sec - t1.tv_sec)*1000000 +(t2.tv_usec-t1.tv_usec);
 
 			if(currentError != 10000)
 			{
 				set_motor_speed(120 + finalSignal, 120 - finalSignal);
-			
+
 			}
 
 			sleep1(0, 5000000);
@@ -255,7 +255,7 @@ void quadrant2()
 int main()
 {
 	init();
-	int quadrant = 1; 	
+	int quadrant = 1;
 	while(true){
 		switch(quadrant)
 		{
@@ -274,4 +274,3 @@ int main()
 	return 0;
 
 }
-
