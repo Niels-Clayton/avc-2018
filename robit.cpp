@@ -7,10 +7,8 @@
 void doGate(){
    //connects to server with the ip address 
    connect_to_server("130.195.6.196", 1024);
-   //sends a message to the connected server
-   send_to_server("Please");
-   //receives message from the connected server
-   char message[24];
+   char message[24] = {"Please"};
+   send_to_server(message);
    receive_from_server(message); //this may be buggy!
    send_to_server(message);
 	}
@@ -118,13 +116,13 @@ int calculate_error()
 		}
 	}
 
-	if(wp == 320){
+	if(wp >= 310){
 		return 20000; // case for if sensor only senses white
 	}else if(wp == 0){
 		return 10000; // case for if sensor only senses black
-	}else if((wp > 100 && wp < 140) && pixels[0] == 1 && pixels[10] == 1 && pixels[20] == 1){
+	}else if((wp > 140 && wp < 180) && pixels[0] == 1 && pixels[10] == 1 && pixels[20] == 1){
 		return -30000; // case for if half the screen has white 
-	}else if ((wp > 100 && wp < 140) && pixels[320] == 1 && pixels[310] == 1 && pixels[300] == 1){
+	}else if ((wp > 140 && wp < 180) && pixels[320] == 1 && pixels[310] == 1 && pixels[300] == 1){
 		return 30000;
 	}else{
 		return error/wp;
@@ -172,99 +170,60 @@ int calculate_pid()
 
 
 int main(){
-	/*
 	init();
-	doGate();
-	take_picture();
-	int previousError = 1;
-	int speed = calculate_pid();
-	set_motor(1, 50 + speed);
-	set_motor(2, 50 - speed);
-	set_motor (1, 255);
-	set_motor (2, 255);
-	sleep1(4, 000000);
-	set_motor (1, 127);
-	sleep1(2, 000000);
-	set_motor (1, 0);
-	set_motor (2, 0);
-	sleep1(1, 000000);
-	set_motor (1, -127);
-	set_motor (2, -127);
-	sleep1(4, 000000);
-	set_motor (2, -40);
-	sleep(2, 000000);
-	*/
-	init();
-	int sector = 1;
+	int sector = 0;
+
 	while(true){
+
 		struct timeval t1;
 		struct timeval t2;
 		
 		if(sector == 0){
-			//doGate();
+			doGate();
 			//Whatever makes it go forward
-			sector++;
+			sector ++;
 		}
 		else if(sector == 1){
 			struct timeval t1;
 			struct timeval t2;
 			long elapsed = 1;
-			/** Sector 1 Code Goes in here - Squiggly Line **/
 			open_screen_stream();
 			take_picture();
 			update_screen();
 			//int previousError = 1;
 			int currentError = calculate_error();
-			int previousFinalSig;
 			int previousError = 1;
 			gettimeofday(&t1,0);
 			
 			if(currentError == 10000)
 			{
-				/* 
-				 * do something (go back?) - 10000 is an error signal to indicate that 
-				 * the robot does not detect a line (i.e. all background)
-				 */
 				set_motor(1,-120);
 				set_motor(2,-120);
-				sleep1(0,250000);
+				sleep1(0,200000);
 				if(currentError == 10000 && previousError == 10000){
-				set_motor(1, -80);
-				set_motor(2, -80);
+				set_motor(1, -100);
+				set_motor(2, -100);
 				}
-			}else if(currentError == -30000){
-				set_motor(1, 80);
-				set_motor(2, 80);
-				sleep1(0, 500000);
-				set_motor(1, 80);
-				set_motor(2, 0);
-				sleep1(0,500000 );
-			}else if(currentError == 30000){
-				set_motor(1, 80);
-				set_motor(2, 80);
-				sleep1(0, 500000);
-				set_motor(1, 0);
-				set_motor(2, 80);
-				sleep1(0,500000 );
-			}else if(currentError == 20000){
-				set_motor(1, 0);
-				set_motor(2, 0);
-				sleep1(5,0);
-			}
-			
-			double kp = 0.90;
-			double kd = -0.15;
+			 }else if(currentError == 20000){
+				 //sector++;
+				 set_motor(1,0);
+			     set_motor(2,0);
+				 sleep1(2,0);
+			 }
+
+			double kp = 0.95;
+			double kd = 0.40;
 			double proportionalSignal = 0.0;
 			double derivativeSignal = 0.0;
 
 			proportionalSignal = (double)currentError * kp;
-			
+
 			derivativeSignal = (((double)currentError - (double)previousError) * kd)/elapsed;
 			
-			double finalSignal = proportionalSignal + derivativeSignal;
+			double finalSignal = proportionalSignal - derivativeSignal;
 
 			previousError = currentError;
-			previousFinalSig = finalSignal;
+			
 			t2 = t1;
 			elapsed = (t2.tv_sec - t1.tv_sec)*1000000 +(t2.tv_usec-t1.tv_usec);
 			
@@ -274,7 +233,7 @@ int main(){
 			printf("leftMot: %d\n", (int)(120 + finalSignal));
 			printf("rightMot: %d\n",(int) (120 - finalSignal));
 			//return finalSignal;
-			if(finalSignal != 10000){
+			if(finalSignal != 10000 || finalSignal !=20000 || finalSignal !=30000){
 				set_motor(1, 120 + finalSignal);
 				set_motor(2, 120 - finalSignal);
 			}else{
@@ -286,11 +245,88 @@ int main(){
 				set_motor(2, 0);
 				
 			}
-			sleep1(0, 5000000);
 			
 		}
 		else if(sector == 2){
-			/** Sector 2 Code goes in here - Straight Lines **/
+			struct timeval t1;
+			struct timeval t2;
+			long elapsed = 1;
+			/** Sector 1 Code Goes in here - Squiggly Line **/
+			open_screen_stream();
+			take_picture();
+			update_screen();
+			
+			int currentError = calculate_error();
+	
+			int previousError = 1;
+			gettimeofday(&t1,0);
+			
+			if(currentError == 10000)
+			{
+				set_motor(1,-120);
+				set_motor(2,-120);
+				sleep1(0,250000);
+				if(currentError == 10000 && previousError == 10000){
+				set_motor(1, -80);
+				set_motor(2, -80);
+				}
+			}else if(currentError == -30000){
+				set_motor(1, 120);
+				set_motor(2, 120);
+				sleep1(1,500000);
+				set_motor(1, 120);
+				set_motor(2, 0);
+				sleep1(1,0 );
+			}
+			else if(currentError == 30000){
+				set_motor(1, 120);
+				set_motor(2, 120);
+				sleep1(1,500000);
+				set_motor(1, 0);
+				set_motor(2, 120);
+				sleep1(1,0 );
+			}
+			else if(currentError == 20000){
+				set_motor(1, 0);
+				set_motor(2, 0);
+				sleep1(5,0);
+			}
+			
+			
+			double kp = 0.90;
+			double kd = -0.25;
+			double proportionalSignal = 0.0;
+			double derivativeSignal = 0.0;
+
+			proportionalSignal = (double)currentError * kp;
+			
+			derivativeSignal = (((double)currentError - (double)previousError) * kd)/elapsed;
+			
+			double finalSignal = proportionalSignal + derivativeSignal;
+
+			previousError = currentError;
+		
+			t2 = t1;
+			elapsed = (t2.tv_sec - t1.tv_sec)*1000000 +(t2.tv_usec-t1.tv_usec);
+			
+			printf("current error: %d\n", currentError);
+			printf("previous error: %d\n", previousError);
+			printf("pid: %f\n", finalSignal);
+			printf("leftMot: %d\n", (int)(120 + finalSignal));
+			printf("rightMot: %d\n",(int) (120 - finalSignal));
+			//return finalSignal;
+			if(finalSignal != 10000){
+				set_motor(1, 100 + finalSignal);
+				set_motor(2, 100 - finalSignal);
+			}else{
+				printf("Going backward\n");
+				set_motor(1, 135);
+				set_motor(2, 135);
+				sleep1(0,200000);
+				set_motor(1, 0);
+				set_motor(2, 0);
+				
+			}
 		}
 		else if(sector == 3){
 			/** Sector 3 Code goes in here - Maze Naviagaton **/
