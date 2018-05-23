@@ -14,16 +14,11 @@
  */
 void do_Gate()
 {
-   //connects to server with the ip address 
-   connect_to_server("130.195.6.196", 1024);
-   //sends a message to the connected server
-   send_to_server("Please");
-   //receives message from the connected server
-   char message[24];
-   receive_from_server(message); 
-   send_to_server(message);
-
-
+    connect_to_server("130.195.6.196", 1024);
+    char message[24] = {"Please"};
+    send_to_server(message);
+    receive_from_server(message); 
+    send_to_server(message);
 }
 
 /*
@@ -82,7 +77,6 @@ int get_color_threshold()
  */
 void get_white_pixels(int threshold, int pixels[])
 {
-	
 	for(int i = 0; i < 320; i++)
 	{ 
 		pixels[i] = 0; // pixel is black
@@ -93,6 +87,27 @@ void get_white_pixels(int threshold, int pixels[])
  			 pixels[i] = 1; // pixel is white
 		}
 	}
+}
+
+/*
+ * Function: red_pixels
+ * ----------------------------
+ *   Checks for the presence of red pixels
+ *
+ *   returns: int red - the number of red pixels
+ *
+ */
+int red_pixels()
+{
+	int red = 0;
+	for(int i = 0; i < 320; i++)
+	{
+		if(get_pixel(120, i, 0)>200 && get_pixel(120, i, 1)<100 && get_pixel(120, i, 2)<100)
+		{
+			red ++;
+		}
+	}
+	return red;
 }
 
 /*
@@ -124,9 +139,9 @@ int calculate_error()
 		return 20000; // case for if sensor only senses white
 	}else if(wp == 0){
 		return 10000; // case for if sensor only senses black
-	}else if((wp > 100 && wp < 140) && pixels[0] == 1 && pixels[10] == 1 && pixels[20] == 1){
+	}else if((wp > 100 && wp < 180) && error < 0){
 		return -30000; // case for if half the screen has white 
-	}else if ((wp > 100 && wp < 140) && pixels[320] == 1 && pixels[310] == 1 && pixels[300] == 1){
+	}else if ((wp > 100 && wp < 180) && error > 0){
 		return 30000;
 	}else{
 		return error/wp;
@@ -145,8 +160,8 @@ int calculate_pid(int currentError, int previousError, long elapsed)
 {
 	
 	/* Set kp and kd */
-	double kp = 0.90;
-	double kd = -0.15;
+	double kp = 0.95;
+	double kd = -0.40;
 	double proportionalSignal = 0.0;
 	double derivativeSignal = 0.0;
 
@@ -169,7 +184,7 @@ void quadrant2()
 {
 	while(true)
 	{
-
+	
 		/* Calculate Time */
 		struct timeval t1;
 		struct timeval t2;
@@ -180,82 +195,83 @@ void quadrant2()
 		open_screen_stream();
 		take_picture();
 		update_screen();
-
-		/* Motor Speed Calculations */
-		int currentError = calculate_error();
-		int previousError = 1;
-
-		if(currentError == 10000) 
+		
+		//if no red pixels have been detect, do normal motor controls
+		if(red_pixels() <50)
 		{
-			// If image is all black go backwards
-			set_motor_speed(-120,-120);
-			sleep1(0,250000);
-			// If image is still black in next image, slowly go backwards again
-			if(currentError == 10000 && previousError == 10000)
+			/* Motor Speed Calculations */
+			int currentError = calculate_error();
+			int previousError = 1;
+
+			if(currentError == 10000) 
 			{
-				set_motor_speed(-80, -80);
+				// If image is all black go backwards
+				set_motor_speed(-120,-120);
+				sleep1(0,250000);
+				// If image is still black in next image, slowly go backwards again
+				if(currentError == 10000 && previousError == 10000)
+				{
+					set_motor_speed(-80, -80);
+				}
 			}
-		}
-		else if(currentError == -30000)
-		{
-			// If half of the image has white only on the left side
-			set_motor_speed(80,80);
-			sleep1(0, 500000);
-			set_motor_speed(80, 0);
-			sleep1(0,500000 );
-		}
-		else if(currentError == 30000 || currentError == 20000)
-		{
-			// If half of the image has white only on the right side or straight line
-			set_motor_speed(80,80);
-			sleep1(0, 500000);
-			set_motor_speed(0, 80);
-			sleep1(0,500000 );
-		}
-		
+			//else if(currentError == -30000)
+			//{
+				// If half of the image has white only on the left side
+			//	set_motor_speed(100,100);
+			//	sleep1(0, 500000);
+			//	set_motor_speed(0, 100);
+			//	sleep1(0,500000 );
+			//}
+			//else if(currentError == 30000 || currentError == 20000)
+			//{
+			//	// If half of the image has white only on the right side or straight line
+			//	set_motor_speed(100,100);
+			//	sleep1(0, 500000);
+			//	set_motor_speed(100, 0);
+			//	sleep1(0,500000 );
+			//}
+			
 
-		int finalSignal = calculate_pid(currentError, previousError, elapsed);
-		previousError = currentError;		
-		t2 = t1;
-		elapsed = (t2.tv_sec - t1.tv_sec)*1000000 +(t2.tv_usec-t1.tv_usec);
+			int finalSignal = calculate_pid(currentError, previousError, elapsed);
+			previousError = currentError;		
+			t2 = t1;
+			elapsed = (t2.tv_sec - t1.tv_sec)*1000000 +(t2.tv_usec-t1.tv_usec);
 
-		if(finalSignal != 10000)
-		{
-			set_motor_speed(120 + finalSignal, 120 - finalSignal);
-		
+			if(currentError != 10000)
+			{
+				set_motor_speed(120 + finalSignal, 120 - finalSignal);
+			
+			}
+
+			sleep1(0, 5000000);
 		}
 		else
 		{
-			printf("Going backward\n");
-			set_motor_speed(135, 135);
-			sleep1(0,200000);
-			set_motor_speed(0, 0);	
+			break;
 		}
-
-		sleep1(0, 5000000);
 	}
 }
 
 int main()
 {
 	init();
-	int quadrant = 1; 
-	switch(quadrant)
-	{
-		case 1 :
-			do_Gate();
-			quadrant = 2;
-			break;
-		case 2 :
-			quadrant2();
-			quadrant = 3;
-			break;
-		default:
-			set_motor_speed(0,0);
+	int quadrant = 1; 	
+	while(true){
+		switch(quadrant)
+		{
+			case 1 :
+				do_Gate();
+				quadrant = 2;
+				break;
+			case 2 :
+				quadrant2();
+				quadrant = 3;
+				break;
+			default:
+				set_motor_speed(0,0);
+		}
 	}
-
 	return 0;
 
 }
-
 
