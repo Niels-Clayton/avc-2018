@@ -253,9 +253,7 @@ void quadrant2()
 		gettimeofday(&t1,0);
 
 		/* Take Images */
-		open_screen_stream();
 		take_picture();
-		update_screen();
 
 		//if no red pixels have been detect, do normal motor controls
 		if(calculate_error(0) != 20000)
@@ -267,7 +265,7 @@ void quadrant2()
 			if(currentError == 10000)
 			{
 				// If image is all black go backwards
-				set_motor_speed(-120,-120);
+				set_motor_speed(-110,-110);
 				sleep1(0,250000);
 				// If image is still black in next image, slowly go backwards again
 				if(currentError == 10000 && previousError == 10000)
@@ -310,9 +308,7 @@ void quadrant3()
 		gettimeofday(&t1,0);
 
 		/* Take Images */
-		open_screen_stream();
 		take_picture();
-		update_screen();
 
 		//if no red pixels have been detect, do normal motor controls
 		if(red_pixels() <50)
