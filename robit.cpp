@@ -291,7 +291,7 @@ void quadrant2()
 		}
 		else
 		{
-			set_motor_speed(10, 10);
+			set_motor_speed(80, 80);
 			sleep1(0, 500000);
 			set_motor_speed(0, 0);
 			break;
@@ -325,20 +325,22 @@ void quadrant3()
 			{
 				if(calculate_error(-1) == 30000)
 				{
+                    set_motor_speed(80, 80);
+                    sleep1(0,300000);
 					//white on left side detected, turn left
 					set_motor_speed(0, 100);
-					sleep1(0,500000 );
+					sleep1(0,100000 );
 				}
 				else if(calculate_error(1) == 30000)
 				{
 					//white on right side detected, turn left
 					set_motor_speed(100, 0);
-			    	sleep1(0,500000 );
+			    	sleep1(0,100000 );
 				}
 				else
 				{
 					// If image is all black go backwards
-					set_motor_speed(-120,-120);
+					set_motor_speed(-100,-100);
 					sleep1(0,250000);
 					// If image is still black in next image, slowly go backwards again
 					if(currentError == 10000 && previousError == 10000)
@@ -347,7 +349,7 @@ void quadrant3()
 					}
 				}
 			}
-			else if(currentError == 20000)
+			else if(calculate_error(-1) == 30000 && calculate_error(1) == 30000)
 			{
 				//move forward and turn left if intersection detected
 				set_motor_speed(100,100);
@@ -355,22 +357,7 @@ void quadrant3()
 				set_motor_speed(0, 100);
 				sleep1(0,500000 );
 			}
-			//else if(currentError == -30000)
-			//{
-				// If half of the image has white only on the left side
-			//	set_motor_speed(100,100);
-			//	sleep1(0, 500000);
-			//	set_motor_speed(0, 100);
-			//	sleep1(0,500000 );
-			//}
-			//else if(currentError == 30000 || currentError == 20000)
-			//{
-			//	// If half of the image has white only on the right side or straight line
-			//	set_motor_speed(100,100);
-			//	sleep1(0, 500000);
-			//	set_motor_speed(100, 0);
-			//	sleep1(0,500000 );
-			//}
+
 
 
 			int finalSignal = calculate_pid(currentError, previousError, elapsed);
@@ -380,8 +367,8 @@ void quadrant3()
 
 			if(currentError != 10000)
 			{
-				set_motor_speed(120 + finalSignal, 120 - finalSignal);
-				printf("##########################################");
+				set_motor_speed(100 + finalSignal, 100 - finalSignal);
+				//printf("##########################################");
 
 			}
 
