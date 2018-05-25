@@ -337,7 +337,6 @@ void quadrant3()
 				sleep1(0, 300000);
 				set_motor_speed(0, 100);
 				sleep1(0,400000 );
-				printf("full white line#################################################################");
 			}
 
 			else if(currentError == 10000)
@@ -347,7 +346,6 @@ void quadrant3()
 					//white on right side detected, turn right
 					set_motor_speed(120, -120);
 			    	sleep1(0,500000 );
-					printf("turning right");
 
 				}
 				else if(calculate_error(-1) == 30000 && calculate_error(1) == 0)
@@ -378,7 +376,6 @@ void quadrant3()
 			if(currentError != 10000)
 			{
 				set_motor_speed(90 + finalSignal, 90 - finalSignal);
-				//printf("##########################################");
 
 			}
 
