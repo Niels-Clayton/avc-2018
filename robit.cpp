@@ -56,7 +56,7 @@ int get_color_threshold(int orientation)
 	{
 		//check for white pixels in the vertical direction
 		int col = (orientation == 1)?220:100; //check the left side first
-		for(int row = 0; row < 240; row++)
+		for(int row = 100; row < 240; row++)
 		{
 			int pixel = get_pixel(row, col, 3);
 			if(pixel > max)
@@ -120,14 +120,14 @@ void get_white_pixels(int threshold, int pixels[], int orientation)
 	else
 	{
 		int col = (orientation == 1)?220:100; //check the left side first
-		for(int row = 0; row < 240; row++)
+		for(int row = 100; row < 240; row++)
 		{
-			pixels[row] = 0; // pixel is black
+			pixels[(row-100)] = 0; // pixel is black
 
 			int pixel = get_pixel(row, col, 3);
 			if(pixel > threshold)
 			{
-				 pixels[row] = 1; // pixel is white
+				 pixels[(row-100)] = 1; // pixel is white
 			}
 		}
 	}
@@ -166,7 +166,7 @@ int calculate_error(int orientation)
 {
 	int error = 0;
 	int wp = 0; // number of white pixels
-	int pixels[(orientation == 0)?320:240];
+	int pixels[(orientation == 0)?320:200];
 	if(orientation == 0)
 	{
 		get_white_pixels(get_color_threshold(0),pixels,0); //initialise array
@@ -192,9 +192,9 @@ int calculate_error(int orientation)
 	{
 		get_white_pixels(get_color_threshold(orientation),pixels,orientation); //initialise array
 
-		for(int i = 0; i < 240; i++)
+		for(int i = 100; i < 240; i++)
 		{
-			if(pixels[i] == 1)
+			if(pixels[(i-100)] == 1)
 			{
 				wp++;
 			}
