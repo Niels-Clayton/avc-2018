@@ -4,17 +4,17 @@
 #include <sys/time.h>
 
 /*
+ *
  * Function: do_gate
  * ----------------------------
  *   Returns the colour threshold i.e. when a pixel colour is considered black
  *   (less than threshold) or white (more than threshold)
- *
  *   returns: int threshold
- *
  */
 void do_Gate()
 {
-    connect_to_server("130.195.6.196", 1024);
+	char srvr_adr[15] = {"130.195.6.196"};
+    connect_to_server(srvr_adr, 1024);
     char message[24] = {"Please"};
     send_to_server(message);
     receive_from_server(message);
@@ -55,7 +55,7 @@ int get_color_threshold(int orientation)
 	else
 	{
 		//check for white pixels in the vertical direction
-		int col = (orientation == -1)?100:220; //check the left side first
+		int col = (orientation == 1)?220:100; //check the left side first
 		for(int row = 0; row < 240; row++)
 		{
 			int pixel = get_pixel(row, col, 3);
@@ -119,7 +119,7 @@ void get_white_pixels(int threshold, int pixels[], int orientation)
 	}
 	else
 	{
-		int col = (orientation == -1)?100:220; //check the left side first
+		int col = (orientation == 1)?220:100; //check the left side first
 		for(int row = 0; row < 240; row++)
 		{
 			pixels[row] = 0; // pixel is black
@@ -201,6 +201,19 @@ int calculate_error(int orientation)
 		}
 		return ((wp > 0) ? 30000 : 0);
 	}
+	//else
+	//{
+	//	get_white_pixels(get_color_threshold(orientation),pixels,orientation); //initialise array
+//
+	//	for(int i = 0; i < 240; i++)
+	//	{
+	//		if(pixels[i] == 1)
+	//		{
+	//			wp++;
+	//		}
+	//	}
+	//	return ((wp > 0) ? -30000 : 0);
+	//}
 
 }
 
@@ -285,7 +298,7 @@ void quadrant2()
 
 			}
 
-			sleep1(0, 5000000);
+		//	sleep1(0, 5000000);
 		}
 		else
 		{
@@ -317,44 +330,45 @@ void quadrant3()
 			int currentError = calculate_error(0);
 			int previousError = 1;
 
-			if(currentError == 10000)
-			{
-				if(calculate_error(-1) == 30000)
-				{
-                    set_motor_speed(80, 80);
-                    sleep1(0,300000);
-					//white on left side detected, turn left
-					set_motor_speed(0, 100);
-					sleep1(0,100000 );
-				}
-				else if(calculate_error(1) == 30000)
-				{
-					//white on right side detected, turn left
-					set_motor_speed(100, 0);
-			    	sleep1(0,100000 );
-				}
-				else
-				{
-					// If image is all black go backwards
-					set_motor_speed(-100,-100);
-					sleep1(0,250000);
-					// If image is still black in next image, slowly go backwards again
-					if(currentError == 10000 && previousError == 10000)
-					{
-						set_motor_speed(-80, -80);
-					}
-				}
-			}
-			else if(calculate_error(-1) == 30000 && calculate_error(1) == 30000)
+			if(calculate_error(-1) == 30000 && calculate_error(1) == 30000 && currentError == 20000)
 			{
 				//move forward and turn left if intersection detected
 				set_motor_speed(100,100);
 				sleep1(0, 300000);
 				set_motor_speed(0, 100);
-				sleep1(0,500000 );
+				sleep1(0,400000 );
+				printf("full white line#################################################################");
 			}
 
+			else if(currentError == 10000)
+			{
+				if(calculate_error(1) == 30000 && calculate_error(-1) == 0)
+				{
+					//white on right side detected, turn right
+					set_motor_speed(120, -120);
+			    	sleep1(0,500000 );
+					printf("turning right");
 
+				}
+				else if(calculate_error(-1) == 30000 && calculate_error(1) == 0)
+				{
+					//white on left side detected, turn left
+					set_motor_speed(-120, 120);
+					sleep1(0,500000 );
+					printf("turning left");
+				}
+				else
+				{
+					// If image is all black go backwards
+					set_motor_speed(-100,-100);
+					sleep1(0,500000);
+					// If image is still black in next image, slowly go backwards again
+				//	if(currentError == 10000 && previousError == 10000)
+				//	{
+				//		set_motor_speed(-80, -80);
+				//	}
+				}
+			}
 
 			int finalSignal = calculate_pid(currentError, previousError, elapsed);
 			previousError = currentError;
@@ -363,15 +377,18 @@ void quadrant3()
 
 			if(currentError != 10000)
 			{
-				set_motor_speed(100 + finalSignal, 100 - finalSignal);
+				set_motor_speed(90 + finalSignal, 90 - finalSignal);
 				//printf("##########################################");
 
 			}
 
-			sleep1(0, 5000000);
+		//	sleep1(0, 5000000);
 		}
 		else
 		{
+			set_motor_speed(120, 120);
+			sleep1(1,500000);
+			set_motor_speed(0, 0);
 			break;
 		}
 	}
