@@ -13,7 +13,7 @@
  */
 void do_Gate()
 {
-	char srvr_adr[15] = {"130.195.6.196"};
+    char srvr_adr[15] = {"130.195.6.196"};
     connect_to_server(srvr_adr, 1024);
     char message[24] = {"Please"};
     send_to_server(message);
@@ -66,7 +66,6 @@ int get_color_threshold(int orientation)
 				min = pixel;
 			}
 		}
-
 	}
 
 	int threshold = (max+min)/2;
@@ -415,5 +414,4 @@ int main()
 		}
 	}
 	return 0;
-
 }
